@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.payment.entity;
 
+import com.akshaychauhan.paymentgateway.common.enums.PaymentActor;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentEvent;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentStatus;
 import jakarta.persistence.*;
