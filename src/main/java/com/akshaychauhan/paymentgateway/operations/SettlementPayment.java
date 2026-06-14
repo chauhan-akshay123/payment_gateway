@@ -1,8 +1,7 @@
 package com.akshaychauhan.paymentgateway.operations;
 
+import com.akshaychauhan.paymentgateway.payment.entity.Payment;
 import jakarta.persistence.*;
-
-import java.util.UUID;
 
 @Entity
 @Table(name = "settlement_payment")
@@ -11,8 +10,13 @@ public class SettlementPayment {
     @EmbeddedId
     private SettlementPaymentId id;
 
-    @MapsId()
+    @MapsId("settlementId")
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "settlement_id", nullable = false)
-    private UUID settlement;
+    private Settlement settlement;
+
+    @MapsId("paymentId")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "payment_id", nullable = false)
+    private Payment payment;
 }
