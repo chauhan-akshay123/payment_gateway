@@ -2,11 +2,18 @@ package com.akshaychauhan.paymentgateway.merchant.entity;
 
 import com.akshaychauhan.paymentgateway.common.enums.Environment;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "api_key")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class ApiKey {
 
     @Id
@@ -23,11 +30,15 @@ public class ApiKey {
     @Column(nullable = false, length = 200)
     private String keySecretHash;
 
+    @Column(length = 200)
+    private String previousKeySecretHash;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false ,length = 10)
     private Environment environment;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = true;
 
     private LocalDateTime lastUsedAt;
