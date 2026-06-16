@@ -10,10 +10,13 @@ import com.akshaychauhan.paymentgateway.merchant.entity.Merchant;
 import com.akshaychauhan.paymentgateway.merchant.repository.ApiKeyRepository;
 import com.akshaychauhan.paymentgateway.merchant.repository.MerchantRepository;
 import com.akshaychauhan.paymentgateway.merchant.service.ApiKeyService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +29,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private final ApiKeyRepository apiKeyRepository;
 
     @Override
+    @Transactional
     public ApiKeyCreateResponse create(UUID merchantId, CreateApiKeyRequest request) {
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("merchant", merchantId));
@@ -62,5 +66,30 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                     null
                 ))
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public void revoke(UUID merchantId, UUID keyId) {
+        ApiKey apiKey = apiKeyRepository.findById(keyId)
+                .filter(k -> k.getMerchant().getId().equals(merchantId))
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey", keyId));
+        apiKey.setEnabled(false);
+    }
+
+    @Override
+    public ApiKeyCreateResponse rotate(UUID merchantId, UUID keyId) {
+        ApiKey apiKey = apiKeyRepository.findById(keyId)
+                .filter(k -> k.getMerchant().getId().equals(merchantId))
+                .orElseThrow(() -> new ResourceNotFoundException("ApiKey", keyId));
+
+        String newRawSecret = RandomizerUtil.randomBase64(40);
+        apiKey.setPreviousKeySecretHash(apiKey.getKeySecretHash());
+        apiKey.setKeySecretHash(newRawSecret); // TODO encode with password encoder
+        apiKey.setRotatedAt(LocalDateTime.now());
+        apiKey.setGracePeriodExpiresAt(LocalDateTime.now().plusHours(24));
+        apiKey = apiKeyRepository.save(apiKey);
+
+        return new ApiKeyCreateResponse(apiKey.getId(), apiKey.getKeyId(), newRawSecret, apiKey.getEnvironment());
     }
 }
