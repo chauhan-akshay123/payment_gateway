@@ -13,7 +13,6 @@ import com.akshaychauhan.paymentgateway.merchant.service.ApiKeyService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -78,6 +77,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     }
 
     @Override
+    @Transactional
     public ApiKeyCreateResponse rotate(UUID merchantId, UUID keyId) {
         ApiKey apiKey = apiKeyRepository.findById(keyId)
                 .filter(k -> k.getMerchant().getId().equals(merchantId))
