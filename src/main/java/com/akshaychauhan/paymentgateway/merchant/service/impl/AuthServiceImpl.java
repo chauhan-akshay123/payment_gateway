@@ -7,6 +7,7 @@ import com.akshaychauhan.paymentgateway.merchant.dto.request.MerchantSignupReque
 import com.akshaychauhan.paymentgateway.merchant.dto.response.MerchantResponse;
 import com.akshaychauhan.paymentgateway.merchant.entity.AppUser;
 import com.akshaychauhan.paymentgateway.merchant.entity.Merchant;
+import com.akshaychauhan.paymentgateway.merchant.mapper.MerchantMapper;
 import com.akshaychauhan.paymentgateway.merchant.repository.AppUserRepository;
 import com.akshaychauhan.paymentgateway.merchant.repository.MerchantRepository;
 import com.akshaychauhan.paymentgateway.merchant.service.AuthService;
@@ -22,6 +23,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AppUserRepository appUserRepository;
     private final MerchantRepository merchantRepository;
+    private final MerchantMapper merchantMapper;
 
     @Override
     @Transactional
@@ -31,13 +33,8 @@ public class AuthServiceImpl implements AuthService {
                     ,"Merchant with email already exists: " + request.email());
         }
 
-        Merchant merchant = Merchant.builder()
-                .businessName(request.businessName())
-                .businessType(request.businessType())
-                .name(request.name())
-                .email(request.email())
-                .status(MerchantStatus.PENDING_KYC)
-                .build();
+        Merchant merchant = merchantMapper.toEntityFromSignUpRequest(request);
+        merchant.setStatus(MerchantStatus.PENDING_KYC);
 
         merchant = merchantRepository.save(merchant);
 
@@ -49,13 +46,6 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         appUserRepository.save(appUser);
 
-        return new MerchantResponse(
-                merchant.getId(),
-                merchant.getName(),
-                merchant.getEmail(),
-                merchant.getBusinessName(),
-                merchant.getBusinessType(),
-                merchant.getStatus()
-        );
+        return merchantMapper.toResponse(merchant);
     }
 }
