@@ -1,9 +1,11 @@
 package com.akshaychauhan.paymentgateway.common.entity;
 import jakarta.persistence.Embeddable;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Embeddable
+@Getter
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Money {
     private int amountUnits;
     private String currency;

@@ -4,6 +4,7 @@ import com.akshaychauhan.paymentgateway.common.entity.Money;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentMethod;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentStatus;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
@@ -12,6 +13,11 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "payment")
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Payment {
 
     @Id
