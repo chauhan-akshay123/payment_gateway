@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.operations;
 
+import com.akshaychauhan.paymentgateway.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
@@ -8,7 +9,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Embeddable
-public class SettlementPaymentId implements Serializable {
+public class SettlementPaymentId {
 
     @Column(name = "settlement_id")
     private UUID settlementId;

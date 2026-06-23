@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.merchant.entity;
 
+import com.akshaychauhan.paymentgateway.common.entity.BaseEntity;
 import com.akshaychauhan.paymentgateway.common.enums.Environment;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ApiKey {
+public class ApiKey extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

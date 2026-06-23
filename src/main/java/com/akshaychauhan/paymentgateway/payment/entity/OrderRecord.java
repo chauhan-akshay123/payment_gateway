@@ -1,4 +1,5 @@
 package com.akshaychauhan.paymentgateway.payment.entity;
+import com.akshaychauhan.paymentgateway.common.entity.BaseEntity;
 import com.akshaychauhan.paymentgateway.common.entity.Money;
 import com.akshaychauhan.paymentgateway.common.enums.OrderStatus;
 import jakarta.persistence.*;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class OrderRecord {
+public class OrderRecord extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
