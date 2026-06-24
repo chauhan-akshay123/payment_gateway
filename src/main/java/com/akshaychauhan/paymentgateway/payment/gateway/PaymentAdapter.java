@@ -1,8 +1,9 @@
 package com.akshaychauhan.paymentgateway.payment.gateway;
 
 import com.akshaychauhan.paymentgateway.payment.gateway.dto.PaymentRequest;
+import com.akshaychauhan.paymentgateway.payment.gateway.dto.PaymentResult;
 
 public interface PaymentAdapter {
 
-    void initiate(PaymentRequest request);
+    PaymentResult initiate(PaymentRequest request);
 }
