@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -75,10 +76,39 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setErrorCode(failure.errorCode());
                 payment.setErrorDescription(failure.errorDescription());
             }
+            case PaymentResult.Success success -> {
+
+            }
         }
 
         payment = paymentRepository.save(payment);
         orderRepository.save(order);
+
+        return paymentMapper.toResponse(payment);
+    }
+
+    @Override
+    public PaymentResponse capture(UUID merchantId, UUID paymentId) {
+
+        Payment payment = paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+        payment.setStatus(PaymentStatus.CAPTURING); //TODO statemachine
+
+        PaymentResult paymentResult = paymentGatewayRouter.capture(payment.getMethod(), paymentId);
+
+        if(paymentResult instanceof PaymentResult.Success success) {
+            payment.setStatus(PaymentStatus.CAPTURED);
+            payment.setCapturedAt(LocalDateTime.now());
+            log.info("Payment captured, paymentID: {}", paymentId);
+        } else if(paymentResult instanceof  PaymentResult.Failure failure) {
+            payment.setStatus(PaymentStatus.AUTHORIZED);
+            payment.setErrorCode(failure.errorCode());
+            payment.setErrorDescription(failure.errorDescription());
+            log.warn("Payment capture failed, paymentID: {}", paymentId);
+        }
+
+        payment = paymentRepository.save(payment);
 
         return paymentMapper.toResponse(payment);
     }
