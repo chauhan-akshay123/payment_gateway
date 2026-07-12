@@ -1,12 +1,19 @@
-package com.akshaychauhan.paymentgateway.vault;
+package com.akshaychauhan.paymentgateway.vault.entity;
 
 import com.akshaychauhan.paymentgateway.common.entity.BaseEntity;
+import com.akshaychauhan.paymentgateway.common.enums.CardBrand;
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "vault_card")
 public class VaultCard extends BaseEntity {
 
@@ -27,7 +34,8 @@ public class VaultCard extends BaseEntity {
     private byte[] encryptedDek;
 
     @Column(nullable = false)
-    private String brand; // VISA RUPAY
+    @Enumerated(EnumType.STRING)
+    private CardBrand brand; // VISA, RUPAY
 
     @Column(nullable = false)
     private String expiryMonth;

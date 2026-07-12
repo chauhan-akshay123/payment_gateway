@@ -1,11 +1,18 @@
-package com.akshaychauhan.paymentgateway.vault;
+package com.akshaychauhan.paymentgateway.vault.entity;
 
 import com.akshaychauhan.paymentgateway.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "card_token")
 public class CardToken extends BaseEntity {
 

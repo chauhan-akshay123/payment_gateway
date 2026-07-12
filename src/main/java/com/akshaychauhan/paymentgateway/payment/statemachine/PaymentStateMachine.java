@@ -3,9 +3,11 @@ package com.akshaychauhan.paymentgateway.payment.statemachine;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentEvent;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentStatus;
 import com.akshaychauhan.paymentgateway.common.exception.InvalidStateTransitionException;
+import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+@Component
 public class PaymentStateMachine {
 
     private record Transition (PaymentStatus from, PaymentEvent event){}
