@@ -1,6 +1,8 @@
 package com.akshaychauhan.paymentgateway.payment.simulator;
 
+import com.akshaychauhan.paymentgateway.common.enums.ChaosMode;
 import com.akshaychauhan.paymentgateway.common.enums.PaymentStatus;
+import com.akshaychauhan.paymentgateway.common.util.RandomizerUtil;
 import com.akshaychauhan.paymentgateway.payment.entity.Payment;
 import com.akshaychauhan.paymentgateway.payment.repository.PaymentRepository;
 import com.akshaychauhan.paymentgateway.payment.service.PaymentService;
@@ -37,7 +39,47 @@ public class BankCallbackSimulator {
   }
 
     private void simulateCallback(Payment payment) {
+     SimulatorConfig.MethodSimulatorConfig methodConfig = simulatorConfig.configFor(payment.getMethod());
 
+     LocalDateTime dueAt = dueAt(payment, methodConfig);
 
+     if(LocalDateTime.now().isBefore(dueAt)) {
+         return;
+     }
+
+     ChaosMode chaosMode = simulatorConfig.getChaosMode();
+
+     switch (chaosMode) {
+         case SUCCESS -> resolve(payment, true);
+         case FAILURE -> resolve(payment, false);
+         case TIMEOUT -> log.debug("BankCallback simulator: Payment Timed out");
+         case NORMAL, SLOW -> resolve(payment, shoudlApprove(payment, methodConfig));
+     }
+    }
+
+    private void resolve(Payment payment, boolean approve) {
+        if (approve) {
+            String bankRef = "SIM_BANK_REF"+ RandomizerUtil.randomBase64(8);
+            paymentService.resolveAuthorization(payment.getId(), true, bankRef, null, null);
+        } else {
+            paymentService.resolveAuthorization(payment.getId(), false, null, "SIM_BANK_ERROR_CODE", "Simulated Bank Decline");
+        }
+    }
+
+    private boolean shoudlApprove(Payment payment, SimulatorConfig.MethodSimulatorConfig methodConfig) {
+      int bucket = Math.abs(payment.getId().hashCode()) % 100;
+      return bucket < methodConfig.getSuccessRate();
+    }
+
+    private LocalDateTime dueAt(Payment payment, SimulatorConfig.MethodSimulatorConfig methodConfig) {
+
+      int range = methodConfig.getMaxDelaySeconds() - methodConfig.getMinDelaySeconds();
+      int delaySeconds = methodConfig.getMaxDelaySeconds() + Math.abs(payment.getId().hashCode()) % (range+1);
+
+      if(simulatorConfig.getChaosMode() == ChaosMode.SLOW) {
+          delaySeconds += 2;
+      }
+
+      return payment.getCreatedAt().plusSeconds(delaySeconds);
     }
 }
