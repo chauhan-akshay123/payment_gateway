@@ -4,7 +4,9 @@ import com.akshaychauhan.paymentgateway.common.util.RandomizerUtil;
 import com.akshaychauhan.paymentgateway.payment.processor.PaymentProcessor;
 import com.akshaychauhan.paymentgateway.payment.processor.dto.PaymentProcessorRequest;
 import com.akshaychauhan.paymentgateway.payment.processor.dto.PaymentProcessorResponse;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UpiPaymentProcessor implements PaymentProcessor {
 
     @Override

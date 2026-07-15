@@ -33,6 +33,7 @@ public class Merchant extends BaseEntity {
     @Column(length = 50)
     private String contactNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50)
     private BusinessType businessType;
 

@@ -19,7 +19,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
-    UUID merchantId = UUID.fromString("09611975-e92c-468c-9774-37f16ab70727"); // TODO: replace it with MerchantContext
+    UUID merchantId = UUID.fromString("ddb3a419-5624-4a31-bc5c-cda197e3b393"); // TODO: replace it with MerchantContext
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(@RequestBody CreateOrderRequest request) {

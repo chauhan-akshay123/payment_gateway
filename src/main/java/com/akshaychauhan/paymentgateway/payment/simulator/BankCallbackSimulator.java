@@ -31,6 +31,8 @@ public class BankCallbackSimulator {
       List<Payment> candidates = paymentRepository
               .findByStatusAndCreatedAtBefore(PaymentStatus.AUTHORIZING, globalWindow);
 
+      log.info("Simulating payments for {} payments", candidates.size());
+
       if(candidates.isEmpty()) return;
 
       for(Payment payment : candidates) {

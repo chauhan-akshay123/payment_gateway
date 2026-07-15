@@ -4,7 +4,9 @@ import com.akshaychauhan.paymentgateway.common.util.RandomizerUtil;
 import com.akshaychauhan.paymentgateway.payment.processor.PaymentProcessor;
 import com.akshaychauhan.paymentgateway.payment.processor.dto.PaymentProcessorRequest;
 import com.akshaychauhan.paymentgateway.payment.processor.dto.PaymentProcessorResponse;
+import org.springframework.stereotype.Component;
 
+@Component
 public class NetBankingPaymentProcessor implements PaymentProcessor {
 
     @Override
@@ -13,7 +15,7 @@ public class NetBankingPaymentProcessor implements PaymentProcessor {
         final String BANK_CODE_FAIL = "BANK_CODE_FAIL";
 
         String bankCode = request.methodDetails() != null ?
-                request.methodDetails().get("BANK").toString() : null;
+                request.methodDetails().get("bank").toString() : null;
 
         // simulation
         if (BANK_CODE_FAIL.equals(bankCode)) {

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Component
+@Component("NETBANKING")
 @Slf4j
 @RequiredArgsConstructor
 public class NetBankingAdapter implements PaymentAdapter {
