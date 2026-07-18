@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.vault.controller;
 
+import com.akshaychauhan.paymentgateway.merchant.security.MerchantContext;
 import com.akshaychauhan.paymentgateway.vault.dto.request.TokenizeRequest;
 import com.akshaychauhan.paymentgateway.vault.dto.response.TokenizeResponse;
 import com.akshaychauhan.paymentgateway.vault.service.VaultService;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,12 +20,11 @@ import java.util.UUID;
 public class VaultController {
 
     private final VaultService vaultService;
-    UUID merchantId = UUID.fromString("09611975-e92c-468c-9774-37f16ab70727"); // TODO: replace it with merchantContext
+    private final MerchantContext merchantContext;
 
     @PostMapping("/tokenize")
     public ResponseEntity<TokenizeResponse> tokenize(@Valid @RequestBody TokenizeRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(vaultService.tokenize(request, merchantId));
+                .body(vaultService.tokenize(request, merchantContext.getMerchantId()));
     }
-
 }

@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.payment.controller;
 
+import com.akshaychauhan.paymentgateway.merchant.security.MerchantContext;
 import com.akshaychauhan.paymentgateway.payment.dto.request.PaymentInitRequest;
 import com.akshaychauhan.paymentgateway.payment.dto.response.PaymentResponse;
 import com.akshaychauhan.paymentgateway.payment.service.PaymentService;
@@ -17,20 +18,20 @@ import java.util.UUID;
 public class PaymentController {
 
     private final PaymentService paymentService;
-    UUID merchantId = UUID.fromString("ddb3a419-5624-4a31-bc5c-cda197e3b393"); // TODO: replace it with merchantContext
+    private final MerchantContext merchantContext;
 
     @PostMapping
     public ResponseEntity<PaymentResponse> initiate(
             @Valid @RequestBody PaymentInitRequest request
             ){
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(paymentService.initiate(merchantId ,request));
+                .body(paymentService.initiate(merchantContext.getMerchantId() ,request));
     }
 
     @PostMapping("/{paymentId}/capture")
     public ResponseEntity<PaymentResponse> capture(
             @PathVariable UUID paymentId
     ) {
-        return ResponseEntity.ok(paymentService.capture(merchantId, paymentId));
+        return ResponseEntity.ok(paymentService.capture(merchantContext.getMerchantId(), paymentId));
     }
 }

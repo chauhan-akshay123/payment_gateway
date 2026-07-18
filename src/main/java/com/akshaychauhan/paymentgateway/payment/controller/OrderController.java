@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.payment.controller;
 
+import com.akshaychauhan.paymentgateway.merchant.security.MerchantContext;
 import com.akshaychauhan.paymentgateway.payment.dto.request.CreateOrderRequest;
 import com.akshaychauhan.paymentgateway.payment.dto.response.OrderResponse;
 import com.akshaychauhan.paymentgateway.payment.service.OrderService;
@@ -19,11 +20,11 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
-    UUID merchantId = UUID.fromString("ddb3a419-5624-4a31-bc5c-cda197e3b393"); // TODO: replace it with MerchantContext
+    private final MerchantContext merchantContext;
 
     @PostMapping
     public ResponseEntity<OrderResponse> create(@RequestBody CreateOrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(orderService.create(merchantId, request));
+                .body(orderService.create(merchantContext.getMerchantId(), request));
     }
 }
