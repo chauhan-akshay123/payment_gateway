@@ -2,6 +2,7 @@ package com.akshaychauhan.paymentgateway.merchant.service.impl;
 
 import com.akshaychauhan.paymentgateway.common.exception.ResourceNotFoundException;
 import com.akshaychauhan.paymentgateway.common.util.RandomizerUtil;
+import com.akshaychauhan.paymentgateway.merchant.cache.ApiKeyCache;
 import com.akshaychauhan.paymentgateway.merchant.dto.request.CreateApiKeyRequest;
 import com.akshaychauhan.paymentgateway.merchant.dto.response.ApiKeyCreateResponse;
 import com.akshaychauhan.paymentgateway.merchant.dto.response.ApiKeyResponse;
@@ -30,6 +31,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     private final ApiKeyRepository apiKeyRepository;
     private final ApiKeyMapper apiKeyMapper;
     private BCryptPasswordEncoder BCRYPT = new BCryptPasswordEncoder();
+    private final ApiKeyCache apiKeyCache;
 
     @Override
     @Transactional
@@ -69,6 +71,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .filter(k -> k.getMerchant().getId().equals(merchantId))
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey", keyId));
         apiKey.setEnabled(false);
+        apiKeyCache.evict(apiKey.getKeyId());
     }
 
     @Override
@@ -86,6 +89,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         apiKey.setRotatedAt(LocalDateTime.now());
         apiKey.setGracePeriodExpiresAt(LocalDateTime.now().plusHours(24));
         apiKey = apiKeyRepository.save(apiKey);
+
+        apiKeyCache.evict(apiKey.getKeyId());
 
         return new ApiKeyCreateResponse(apiKey.getId(), apiKey.getKeyId(), newRawSecret, apiKey.getEnvironment());
     }
