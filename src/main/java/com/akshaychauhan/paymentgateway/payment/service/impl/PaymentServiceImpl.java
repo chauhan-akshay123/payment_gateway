@@ -17,10 +17,11 @@ import com.akshaychauhan.paymentgateway.payment.repository.OrderRepository;
 import com.akshaychauhan.paymentgateway.payment.repository.PaymentRepository;
 import com.akshaychauhan.paymentgateway.payment.service.PaymentService;
 import com.akshaychauhan.paymentgateway.payment.statemachine.PaymentTransitionService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -39,7 +40,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse initiate(UUID merchantId, PaymentInitRequest request) {
-        OrderRecord order = orderRepository.findByIdAndMerchantId(request.orderId(), merchantId)
+//        OrderRecord order = orderRepository.findByIdAndMerchantId(request.orderId(), merchantId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Order", request.orderId()));
+
+        OrderRecord order = orderRepository.findByIdAndMerchantIdForUpdate(request.orderId(), merchantId)   // lock the order record for update to prevent concurrent modifications -> using pessimistic locking
                 .orElseThrow(() -> new ResourceNotFoundException("Order", request.orderId()));
 
         if(order.getOrderStatus() != OrderStatus.CREATED && order.getOrderStatus() != OrderStatus.ATTEMPTED) {
@@ -97,10 +101,14 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public PaymentResponse capture(UUID merchantId, UUID paymentId) {
 
-        Payment payment = paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
-                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+//        Payment payment = paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+          Payment payment  = paymentRepository.findByIdAndMerchantIdForUpdate(paymentId, merchantId) // lock the payment record for update to prevent concurrent modifications -> using pessimistic locking
+                          .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
         paymentTransitionService.apply(payment, PaymentEvent.CAPTURE_REQUEST); // state machine capturing state
 
@@ -128,7 +136,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void resolveAuthorization(UUID paymentId, boolean approve, String bankRef, String errorCode, String errorDescription) {
 
-        Payment payment = paymentRepository.findById(paymentId)
+//        Payment payment = paymentRepository.findById(paymentId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
+
+        Payment payment = paymentRepository.findByIdForUdpate(paymentId)  // lock the payment record for update to prevent concurrent modifications -> using pessimistic locking
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", paymentId));
 
         if(payment.getStatus() != PaymentStatus.AUTHORIZING) {
