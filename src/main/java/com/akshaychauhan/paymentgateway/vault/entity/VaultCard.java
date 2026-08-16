@@ -24,7 +24,7 @@ public class VaultCard extends BaseEntity {
     @Column(nullable = false, length = 4)
     private String lastFour;
 
-    @Column(nullable = false, length = 4)
+    @Column(nullable = false, length = 6)
     private String bin; // first 6 digits of the card
 
     @Column(nullable = false)
