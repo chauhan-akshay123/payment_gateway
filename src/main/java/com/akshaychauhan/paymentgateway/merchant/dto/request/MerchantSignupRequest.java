@@ -4,8 +4,6 @@ import com.akshaychauhan.paymentgateway.common.enums.BusinessType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
-import lombok.Getter;
 
 public record MerchantSignupRequest(
 
