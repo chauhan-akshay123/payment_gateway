@@ -4,6 +4,7 @@ import com.akshaychauhan.paymentgateway.common.enums.OrderStatus;
 import com.akshaychauhan.paymentgateway.common.exception.BusinessRuleViolationException;
 import com.akshaychauhan.paymentgateway.common.exception.DuplicateResourceException;
 import com.akshaychauhan.paymentgateway.common.exception.ResourceNotFoundException;
+import com.akshaychauhan.paymentgateway.merchant.service.CustomerService;
 import com.akshaychauhan.paymentgateway.payment.dto.request.CreateOrderRequest;
 import com.akshaychauhan.paymentgateway.payment.dto.response.OrderResponse;
 import com.akshaychauhan.paymentgateway.payment.dto.response.PaymentResponse;
@@ -32,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
     private final OrderMapper orderMapper;
+    private final CustomerService customerService;
 
     @Value("${payment.order.default-order-expiry-minutes:30}")
     private int defaultOrderExpiryMinutes;
@@ -40,14 +42,27 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse create(UUID merchantId, CreateOrderRequest request) {
+        log.info("Entering OrderServiceImpl.create with merchantId: {}, request: {}", merchantId, request);
+
         if(request.receipt() != null && orderRepository.existsByMerchantIdAndReceipt(merchantId, request.receipt())){
             throw new DuplicateResourceException("ORDER_RECEIPT_DUPLICATE", "Order with receipt already exists: " + request.receipt());
+        }
+
+        UUID customerId = null;
+        if(request.customer() != null){
+            log.info("Customer details provided in request, finding or creating customer for merchantId: {}, email: {}", merchantId, request.customer().email());
+           customerId = customerService.findOrCreate(merchantId,
+                   request.customer().email(),
+                   request.customer().name(),
+                   request.customer().phone()
+           );
         }
 
         OrderRecord order = OrderRecord.builder()
                 .receipt(request.receipt())
                 .amount(request.amount())
                 .notes(request.notes())
+                .customerId(customerId)
                 .merchantId(merchantId)
                 .orderStatus(OrderStatus.CREATED)
                 .expiresAt(request.expiresAt() != null ? request.expiresAt() :
@@ -55,6 +70,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         order = orderRepository.save(order);
+        log.info("Order created with id: {}, merchantId: {}, receipt: {}", order.getId(), merchantId, request.receipt());
 
 // TODO: publis kafka event about order creation
 
