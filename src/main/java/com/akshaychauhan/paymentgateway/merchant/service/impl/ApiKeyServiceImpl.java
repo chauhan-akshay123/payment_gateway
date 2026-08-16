@@ -37,6 +37,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
     @Override
     @Transactional
     public ApiKeyCreateResponse create(UUID merchantId, CreateApiKeyRequest request) {
+        log.info("Entering create API key for merchant: {}", merchantId);
         Merchant merchant = merchantRepository.findById(merchantId)
                 .orElseThrow(() -> new ResourceNotFoundException("merchant", merchantId));
 
@@ -51,6 +52,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
                 .build();
 
         apiKey = apiKeyRepository.save(apiKey);
+        log.info("API key created for merchant: {}, keyId: {}", merchantId, keyId);
 
         return new ApiKeyCreateResponse(
                 apiKey.getId(),
@@ -62,22 +64,26 @@ public class ApiKeyServiceImpl implements ApiKeyService {
 
     @Override
     public List<ApiKeyResponse> listByMerchant(UUID merchantId) {
+        log.info("Entering listByMerchant for merchant: {}", merchantId);
        return apiKeyMapper.toResponseList(apiKeyRepository.findByMerchant_Id(merchantId));
     }
 
     @Override
     @Transactional
     public void revoke(UUID merchantId, UUID keyId) {
+        log.info("Entering revoke API key for merchant: {}, keyId: {}", merchantId, keyId);
         ApiKey apiKey = apiKeyRepository.findById(keyId)
                 .filter(k -> k.getMerchant().getId().equals(merchantId))
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey", keyId));
         apiKey.setEnabled(false);
         apiKeyCache.evict(apiKey.getKeyId());
+        log.info("API key revoked for merchant: {}, keyId: {}", merchantId, keyId);
     }
 
     @Override
     @Transactional
     public ApiKeyCreateResponse rotate(UUID merchantId, UUID keyId) {
+        log.info("Entering rotate API key for merchant: {}, keyId: {}", merchantId, keyId);
         ApiKey apiKey = apiKeyRepository.findById(keyId)
                 .filter(k -> k.getMerchant().getId().equals(merchantId))
                 .orElseThrow(() -> new ResourceNotFoundException("ApiKey", keyId));
@@ -92,7 +98,8 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         apiKey = apiKeyRepository.save(apiKey);
 
         apiKeyCache.evict(apiKey.getKeyId());
-
+        log.info("API key rotated. merchantId={}, keyId={}, rotatedAt={}, gracePeriodExpiresAt={}",
+                merchantId, keyId, apiKey.getRotatedAt(), apiKey.getGracePeriodExpiresAt());
         return new ApiKeyCreateResponse(apiKey.getId(), apiKey.getKeyId(), newRawSecret, apiKey.getEnvironment());
     }
 }

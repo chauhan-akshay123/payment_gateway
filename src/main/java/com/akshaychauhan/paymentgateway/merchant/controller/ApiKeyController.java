@@ -7,6 +7,7 @@ import com.akshaychauhan.paymentgateway.merchant.security.MerchantContext;
 import com.akshaychauhan.paymentgateway.merchant.service.ApiKeyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/v1/merchants/api-keys")
+@Slf4j
 public class ApiKeyController {
 
   private final ApiKeyService apiKeyService;
@@ -24,23 +26,27 @@ public class ApiKeyController {
 
   @PostMapping
   public ResponseEntity<ApiKeyCreateResponse> create(@Valid @RequestBody CreateApiKeyRequest request) {
+    log.info("Entering create API key for merchant: {}", merchantContext.getMerchantId());
     return ResponseEntity.status(HttpStatus.CREATED)
             .body(apiKeyService.create(merchantContext.getMerchantId(), request));
   }
 
   @GetMapping
   public ResponseEntity <List<ApiKeyResponse>> list() {
+    log.info("Entering list API keys for merchant: {}", merchantContext.getMerchantId());
     return ResponseEntity.ok(apiKeyService.listByMerchant(merchantContext.getMerchantId()));
   }
 
   @DeleteMapping("/{keyId}")
   public ResponseEntity<Void> revoke(@PathVariable UUID keyId) {
+    log.info("Entering revoke API key for merchant: {}, keyId: {}", merchantContext.getMerchantId(), keyId);
     apiKeyService.revoke(merchantContext.getMerchantId(), keyId);
     return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/{keyId}/rotate")
   public ResponseEntity<ApiKeyCreateResponse> rotateKey(@PathVariable UUID keyId) {
+    log.info("Entering rotate API key for merchant: {}, keyId: {}", merchantContext.getMerchantId(), keyId);
     return ResponseEntity.ok(apiKeyService.rotate(merchantContext.getMerchantId(), keyId));
   }
 }

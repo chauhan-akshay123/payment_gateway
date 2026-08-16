@@ -38,7 +38,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public MerchantResponse signup(MerchantSignupRequest request) {
+        log.info("Entering AuthServiceImpl.signup method for email={}", request.email());
         if(merchantRepository.existsByEmail(request.email())) {
+            log.warn("Duplicate signup attempt detected for email={}", request.email());
             throw new DuplicateResourceException("DUPLICATE_MERCHANT_EMAIL"
                     ,"Merchant with email already exists: " + request.email());
         }
@@ -47,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
         merchant.setStatus(MerchantStatus.PENDING_KYC);
 
         merchant = merchantRepository.save(merchant);
+        log.info("Merchant entity persisted with id={}, status={}", merchant.getId(), merchant.getStatus());
 
         AppUser appUser = AppUser.builder()
                 .email(request.email())
@@ -55,12 +58,14 @@ public class AuthServiceImpl implements AuthService {
                 .role(UserRole.OWNER)
                 .build();
         appUserRepository.save(appUser);
+        log.info("AppUser created for merchantId={}, role={}", merchant.getId(), appUser.getRole());
 
         return merchantMapper.toResponse(merchant);
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        log.info("Entering AuthServiceImpl.login method for email={}", request.email());
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
@@ -71,6 +76,10 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtUtil.generateAccessToken(request.email(), appUser.getMerchant().getId(), appUser.getRole().toString());
 
+        log.info("Access token generated for userId={}, merchantId={}",
+                appUser.getId(), appUser.getMerchant().getId());
+
+        log.info("Login completed successfully for email={}", request.email());
         return new LoginResponse(token);
     }
 }
