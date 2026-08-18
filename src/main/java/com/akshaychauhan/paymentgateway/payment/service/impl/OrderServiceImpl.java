@@ -1,5 +1,6 @@
 package com.akshaychauhan.paymentgateway.payment.service.impl;
 
+import com.akshaychauhan.paymentgateway.common.enums.EventAggregateType;
 import com.akshaychauhan.paymentgateway.common.enums.OrderStatus;
 import com.akshaychauhan.paymentgateway.common.exception.BusinessRuleViolationException;
 import com.akshaychauhan.paymentgateway.common.exception.DuplicateResourceException;
@@ -12,6 +13,7 @@ import com.akshaychauhan.paymentgateway.payment.entity.OrderRecord;
 import com.akshaychauhan.paymentgateway.payment.entity.Payment;
 import com.akshaychauhan.paymentgateway.payment.mapper.OrderMapper;
 import com.akshaychauhan.paymentgateway.payment.mapper.PaymentMapper;
+import com.akshaychauhan.paymentgateway.payment.outbox.OutboxEventPublisher;
 import com.akshaychauhan.paymentgateway.payment.repository.OrderRepository;
 import com.akshaychauhan.paymentgateway.payment.repository.PaymentRepository;
 import com.akshaychauhan.paymentgateway.payment.service.OrderService;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -34,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final PaymentMapper paymentMapper;
     private final OrderMapper orderMapper;
     private final CustomerService customerService;
+    private final OutboxEventPublisher eventPublisher;
 
     @Value("${payment.order.default-order-expiry-minutes:30}")
     private int defaultOrderExpiryMinutes;
@@ -72,7 +76,15 @@ public class OrderServiceImpl implements OrderService {
         order = orderRepository.save(order);
         log.info("Order created with id: {}, merchantId: {}, receipt: {}", order.getId(), merchantId, request.receipt());
 
-// TODO: publis kafka event about order creation
+        // publish kafka event about order creation -> outboxEvent Table
+        eventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CREATED",
+                Map.of("orderId", order.getId(),
+                       "merchantId", merchantId.toString(),
+                        "status", order.getOrderStatus().name(),
+                        "amount", order.getAmount(),
+                        "ammountCurrency", order.getAmount().getCurrency()
+                   )
+                );
 
         return orderMapper.toResponse(order);
     }
@@ -98,6 +110,16 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderStatus(OrderStatus.CANCELLED);
         orderRepository.save(order);
+
+        //publish kafka event about order cancellation -> outboxEvent table
+        eventPublisher.publish(EventAggregateType.ORDER, order.getId(), "ORDER_CANCELLED",
+                Map.of("orderId", order.getId(),
+                       "merchantId", merchantId.toString(),
+                       "status", order.getOrderStatus().name(),
+                        "amountUnits", order.getAmount().getAmountUnits(),
+                        "amountCurrency", order.getAmount().getCurrency()
+                )
+                );
 
         return orderMapper.toResponse(order);
     }
